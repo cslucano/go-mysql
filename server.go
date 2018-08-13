@@ -49,8 +49,10 @@ func main() {
         }
         defer db.Close()
         
+        db.LogMode(true)
+        
         var country Country
-        db.First(&country)
+        db.Debug().First(&country)
         
         return c.String(http.StatusOK, "Hola " + country.Code) 
     })
