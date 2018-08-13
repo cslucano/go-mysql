@@ -53,27 +53,24 @@ func main() {
         if err != nil {
             log.Fatal(err)
         }
-        
 
         return c.String(http.StatusOK, record.Country.IsoCode)
-    })	
+    })
 
     e.GET("/geoip/countries", func(c echo.Context) error {
 	    db, err := gorm.Open("mysql", "golang:golang@/world")/*?charset=utf8&parseTime=True&loc=Local")*/
         if err != nil {
             return echo.NewHTTPError(http.StatusBadRequest, "DB connection error")
         }
-	
 	defer db.Close()
 
         db.LogMode(true)
-	
 	var country Country
 	//fmt.Println(db.Raw("SELECT * FROM country ORDER BY Code LIMIT 1").Scan(&country))
         db.Debug().First(&country)
         spew.Dump(country)
 	fmt.Println(country)
-	return c.String(http.StatusOK, country.Name) 
+	return c.String(http.StatusOK, country.Name)
     })
 
     e.Logger.Fatal(e.Start(":1323"))
