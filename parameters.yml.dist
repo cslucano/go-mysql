@@ -1,5 +1,3 @@
 gorm:
-    dialect: 'dialect'
-    conn_string: 'user:password@/database'
-	
-
+    driver: dialect
+    conn_str: user:password@/database
