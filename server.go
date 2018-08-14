@@ -3,14 +3,12 @@ package main
 
 import (
     "log"
-    "fmt"
     "net"
     "net/http"
     "github.com/labstack/echo"
     "github.com/jinzhu/gorm"
     "github.com/oschwald/geoip2-golang"
     _ "github.com/jinzhu/gorm/dialects/mysql"
-    "github.com/davecgh/go-spew/spew"
 )
 
 type Country struct {
@@ -53,24 +51,25 @@ func main() {
         if err != nil {
             log.Fatal(err)
         }
+        
 
         return c.String(http.StatusOK, record.Country.IsoCode)
-    })
+    })	
 
     e.GET("/geoip/countries", func(c echo.Context) error {
-	    db, err := gorm.Open("mysql", "golang:golang@/world")/*?charset=utf8&parseTime=True&loc=Local")*/
+	    db, err := gorm.Open("mysql", "golang:golang@/world")
         if err != nil {
             return echo.NewHTTPError(http.StatusBadRequest, "DB connection error")
         }
+	
 	defer db.Close()
-
         db.LogMode(true)
+	
 	var country Country
-	//fmt.Println(db.Raw("SELECT * FROM country ORDER BY Code LIMIT 1").Scan(&country))
-        db.Debug().First(&country)
-        spew.Dump(country)
-	fmt.Println(country)
-	return c.String(http.StatusOK, country.Name)
+        db.First(&country)
+
+	mapCountry := map[string]string{"country_name": country.Name, "country_currency": country.Code2, "country_code": country.Code}
+	return c.JSON(http.StatusOK, mapCountry);
     })
 
     e.Logger.Fatal(e.Start(":1323"))
