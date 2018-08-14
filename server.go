@@ -62,21 +62,18 @@ func main() {
         if err != nil {
             log.Fatal(err)
         }
-        
 
         return c.String(http.StatusOK, record.Country.IsoCode)
-    })	
+    })
 
     e.GET("/geoip/countries", func(c echo.Context) error {
 	    db, err := gorm.Open(parameters.Gorm.Driver, parameters.Gorm.ConnStr)/*?charset=utf8&parseTime=True&loc=Local")*/
         if err != nil {
             return echo.NewHTTPError(http.StatusBadRequest, "DB connection error")
         }
-	
 	defer db.Close()
 
         db.LogMode(true)
-	
 	var country Country
         db.Debug().First(&country)
         spew.Dump(country)
