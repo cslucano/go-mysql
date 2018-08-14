@@ -1,16 +1,16 @@
-
 package main
 
 import (
     "log"
-    "fmt"
     "net"
     "net/http"
+    "github.com/davecgh/go-spew/spew"
     "github.com/labstack/echo"
+    "github.com/jinzhu/configor"
     "github.com/jinzhu/gorm"
     "github.com/oschwald/geoip2-golang"
+
     _ "github.com/jinzhu/gorm/dialects/mysql"
-    "github.com/davecgh/go-spew/spew"
 )
 
 type Country struct {
@@ -35,8 +35,17 @@ func (c Country) TableName() string {
     return "country"
 }
 
+var parameters =  struct {
+    Gorm struct {
+        Driver string `yaml:"driver"`
+        ConnStr string `yaml:"conn_str"`
+    }
+}{}
 
 func main() {
+    configor.Load(&parameters, "parameters.yml")
+    spew.Dump(parameters)
+   
     e := echo.New()
     e.GET("/geoip/:ip", func(c echo.Context) error {
         ip := net.ParseIP(c.Param("ip"))
@@ -59,7 +68,7 @@ func main() {
     })	
 
     e.GET("/geoip/countries", func(c echo.Context) error {
-	    db, err := gorm.Open("mysql", "golang:golang@/world")/*?charset=utf8&parseTime=True&loc=Local")*/
+	    db, err := gorm.Open(parameters.Gorm.Driver, parameters.Gorm.ConnStr)/*?charset=utf8&parseTime=True&loc=Local")*/
         if err != nil {
             return echo.NewHTTPError(http.StatusBadRequest, "DB connection error")
         }
@@ -69,10 +78,9 @@ func main() {
         db.LogMode(true)
 	
 	var country Country
-	//fmt.Println(db.Raw("SELECT * FROM country ORDER BY Code LIMIT 1").Scan(&country))
         db.Debug().First(&country)
         spew.Dump(country)
-	fmt.Println(country)
+
 	return c.String(http.StatusOK, country.Name) 
     })
 

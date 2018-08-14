@@ -1,0 +1,5 @@
+gorm:
+    dialect: 'dialect'
+    conn_string: 'user:password@/database'
+	
+
