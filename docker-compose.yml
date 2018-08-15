@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  web:
+    build:
+      context: Golang
+    ports:
+      - 1323:1323
+    links:
+      - database
+
+  database:
+    image:
+      mysql/mysql-server
+    ports:
+      - 3307:3307
+    #environment:
+      #- MYSQL_ROOT_PASSWORD=1234
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - $PWD/Country-DB/world.sql:/docker-entrypoint-initdb.d/world.sql
+      - $PWD/Country-DB/user.sql:/docker-entrypoint-initdb.d/user.sql
+#volumes:
+#  worlddata:
+#    external:
+#      name: /home/roberto/Docker-compose-files/mysql/world.sql
