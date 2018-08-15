@@ -47,7 +47,7 @@ func main() {
     spew.Dump(parameters)
 
     e := echo.New()
-    e.GET("/geoip/:ip", func(c echo.Context) error {
+    e.GET("/geoip/maxmind/:ip", func(c echo.Context) error {
         ip := net.ParseIP(c.Param("ip"))
         if nil == ip {
             return echo.NewHTTPError(http.StatusBadRequest, "Bad Request")
@@ -64,6 +64,36 @@ func main() {
         }
 
         return c.String(http.StatusOK, record.Country.IsoCode)
+    })
+
+    e.GET("/geoip/:ip", func(c echo.Context) error {
+        ip := net.ParseIP(c.Param("ip"))
+        if nil == ip {
+            return echo.NewHTTPError(http.StatusBadRequest, "Bad Request")
+	      }
+
+        db, err := geoip2.Open("./GeoLite2-DB/GeoLite2-Country.mmdb")
+        if err != nil {
+            log.Fatal(err)
+        }
+        defer db.Close()
+        record, err := db.Country(ip)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        db2, err := gorm.Open(parameters.Gorm.Driver, parameters.Gorm.ConnStr)
+              if err != nil {
+                  return echo.NewHTTPError(http.StatusBadRequest, "DB connection error")
+              }
+        defer db2.Close()
+        db2.LogMode(true)
+
+        var country Country
+        db2.Where("Code2 = ?", record.Country.IsoCode).First(&country)
+
+        mapCountry := map[string]string{"country_name": country.Name, "country_currency": country.Code2, "country_code": country.Code}
+        return c.JSON(http.StatusOK, mapCountry);
     })
 
     e.GET("/geoip/countries", func(c echo.Context) error {
@@ -84,4 +114,3 @@ func main() {
 
     e.Logger.Fatal(e.Start(":1323"))
 }
-
